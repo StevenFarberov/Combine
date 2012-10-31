@@ -103,11 +103,11 @@ public class CombineGUI extends JFrame {
 				try {
 					gameState.Board board = new gameState.Board();
 					final Game game = new Game(board);
-					//final NaiveAgent agent = new NaiveAgent(game);
+					final NaiveAgent agent = new NaiveAgent(game);
 					final CombineGUI frame = new CombineGUI(board, game, true);
-					frame.addKeyListener(frame.new ArrowListener());
+					//frame.addKeyListener(frame.new ArrowListener());
 					frame.setVisible(true);
-					/*ActionListener taskPerformer1 = new ActionListener() {
+					ActionListener taskPerformer1 = new ActionListener() {
 						public void actionPerformed(ActionEvent evt) {
 							try {
 								agent.findBestSingleTurn();
@@ -159,7 +159,7 @@ public class CombineGUI extends JFrame {
 					
 					Timer t3 = new Timer(1500, taskPerformer3);
 					t3.setInitialDelay(1000);
-					t3.start();*/
+					t3.start();
 					
 
 				} catch (Exception e) {
