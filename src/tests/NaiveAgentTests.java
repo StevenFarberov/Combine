@@ -14,7 +14,7 @@ import Agents.NaiveAgent;
 
 public class NaiveAgentTests {
 	
-	/*@Test
+	@Test
 	public void testSwap() 
 	{
 		Board board = new Board();
@@ -126,7 +126,7 @@ public class NaiveAgentTests {
 		
 		
 		assertEquals(Color.GREEN, board.boardState[3][1].color);
-	}*/
+	}
 	
 	@Test
 	public void testTwoTouchingHueristicVert() throws Exception {
@@ -145,13 +145,13 @@ public class NaiveAgentTests {
 		NaiveAgent agent = new NaiveAgent(game);
 		game.pair = new InputPair(Color.YELLOW, Color.GREEN, 6, Orientation.VERTICAL);
 		assertEquals(true, agent.twoTouchingVert(6));
-		/*agent.findBestSingleTurn();
+		agent.findBestSingleTurn();
 		
 		game.drop();
 		game.combineAll();
 		
 		
-		assertEquals(Color.GREEN, board.boardState[3][1].color);*/
+		assertEquals(Color.GREEN, board.boardState[6][1].color);
 	}
 
 }

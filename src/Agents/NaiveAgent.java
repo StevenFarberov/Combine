@@ -104,7 +104,6 @@ public class NaiveAgent {
 				game.pair.location = i;
 				if (i < game.boardWidth - 1)
 				{
-					System.out.println("for i = " + i + ": " + calcWeightedScoreHoriz(i));
 					game.pair.orietation = Orientation.HORIZONTAL;
 					weightedStates.add(new ScoredState(calcWeightedScoreHoriz(i), Orientation.HORIZONTAL, i, 
 							game.pair.ball1.color, game.pair.ball2.color));
@@ -173,7 +172,6 @@ public class NaiveAgent {
 			
 			if (twoTouchingHoriz(index))
 			{
-				System.out.println("Found 2 touching horizontally");
 				score += 4;
 			}
 			return score;
@@ -208,13 +206,18 @@ public class NaiveAgent {
 		try {
 			height = game.findLowestFreeSpace(index);
 			
+			if (!game.withinHeight(height+1))
+			{
+				return false;
+			}
+			
 			if (game.withinWidth(index+1))
 			{
-				if (game.board[index+1][height].color == c2 )
+				if (game.board[index+1][height] != null && game.board[index+1][height].color == c2 )
 				{
 					return true;
 				}
-				if (game.withinHeight(height+1) && game.board[index+1][height+1].color == c1)
+				if (game.board[index+1][height+1] != null && game.board[index+1][height+1].color == c1)
 				{
 					return true;
 				}
@@ -222,17 +225,17 @@ public class NaiveAgent {
 			
 			if (game.withinWidth(index - 1))
 			{
-				if (game.board[index-1][height].color == c2)
+				if (game.board[index-1][height] != null && game.board[index-1][height].color == c2)
 				{
 					return true;
 				}
-				if (game.withinHeight(height + 1) && game.board[index-1][height+1].color == c1)
+				if (game.board[index-1][height+1] != null && game.board[index-1][height+1].color == c1)
 				{
 					return true;
 				}
 			}
 			
-			if (game.withinHeight(height - 1) && game.board[index][height-1].color == c2)
+			if (game.withinHeight(height - 1) && game.board[index][height-1] != null && game.board[index][height-1].color == c2)
 			{
 				return true;
 			}
@@ -254,6 +257,11 @@ public class NaiveAgent {
 		try {
 			int height1 = game.findLowestFreeSpace(index);
 			int height2 = game.findLowestFreeSpace(index + 1);
+			
+			if (!game.withinHeight(height1) || !game.withinHeight(height2))
+			{
+				return false;
+			}
 
 			if (touchingHorizRight(index, height2, c2))
 			{
