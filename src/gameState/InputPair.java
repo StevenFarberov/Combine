@@ -35,6 +35,10 @@ public class InputPair {
 		}
 		else 
 		{
+			if (location == 6)
+			{
+				location--;
+			}
 			orietation = Orientation.HORIZONTAL;
 			Ball temp = ball1;
 			ball1 = ball2;

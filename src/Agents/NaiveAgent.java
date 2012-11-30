@@ -5,6 +5,7 @@ import java.util.LinkedList;
 
 import gamePlay.Game;
 import gamePlay.Util;
+import gameState.Ball;
 import gameState.Board.Color;
 import gameState.InputPair;
 import gameState.InputPair.Orientation;
@@ -51,49 +52,89 @@ public class NaiveAgent {
 	{
 		int maxScore = 0;
 		int bestLocation = 0;
+		Color ball1Color = null;
+		Color ball2Color = null;
 		Orientation bestOrient = Orientation.HORIZONTAL;
-		
 		LinkedList<ScoredState> states = new LinkedList<ScoredState>();
+		
 		for (int i = 0; i < game.boardWidth; i++ )
 		{
 			game.pair.location = i;
+			
+			// Horizontal scores
 			if (i < game.boardWidth - 1)
 			{
 				game.pair.orietation = Orientation.HORIZONTAL;
-				states.add(new ScoredState(game.simulateMove(), Orientation.HORIZONTAL, i));
+				states.add(new ScoredState(game.simulateMove(), Orientation.HORIZONTAL, i, 
+						game.pair.ball1.color, game.pair.ball2.color));
+				
+				ballSwap(game.pair);
+				
+				states.add(new ScoredState(game.simulateMove(), Orientation.HORIZONTAL, i, 
+						game.pair.ball1.color, game.pair.ball2.color));
+				
 			}
 			
+			// Vertical Scores
 			game.pair.orietation = Orientation.VERTICAL;
-			states.add(new ScoredState(game.simulateMove(), Orientation.VERTICAL, i));
+			states.add(new ScoredState(game.simulateMove(), Orientation.VERTICAL, i, 
+					game.pair.ball1.color, game.pair.ball2.color));
+			
+			ballSwap(game.pair);
+			
+			states.add(new ScoredState(game.simulateMove(), Orientation.VERTICAL, i, 
+					game.pair.ball1.color, game.pair.ball2.color));
 		}
 		Collections.sort(states);
-		bestLocation = states.getLast().location;
-		bestOrient = states.getLast().orientation;
-		maxScore = states.getLast().score;
+		
+		ScoredState bestMove = states.getLast();
+		
+		ball1Color = bestMove.ball1Color;
+		ball2Color = bestMove.ball2Color;
+		bestLocation = bestMove.location;
+		bestOrient = bestMove.orientation;
+		maxScore = bestMove.score;
 		
 		if (maxScore <= 0) //No combos
 		{
 			LinkedList<ScoredState> weightedStates = new LinkedList<ScoredState>();
+			
 			for (int i = 0; i < game.boardWidth; i++ )
 			{
 				game.pair.location = i;
 				if (i < game.boardWidth - 1)
 				{
+					System.out.println("for i = " + i + ": " + calcWeightedScoreHoriz(i));
 					game.pair.orietation = Orientation.HORIZONTAL;
-					weightedStates.add(new ScoredState(calcWeightedScoreHoriz(i), Orientation.HORIZONTAL, i));
+					weightedStates.add(new ScoredState(calcWeightedScoreHoriz(i), Orientation.HORIZONTAL, i, 
+							game.pair.ball1.color, game.pair.ball2.color));
+					
+					ballSwap(game.pair);
+					
+					weightedStates.add(new ScoredState(calcWeightedScoreHoriz(i), Orientation.HORIZONTAL, i, 
+							game.pair.ball1.color, game.pair.ball2.color));
 				}
 				
 				game.pair.orietation = Orientation.VERTICAL;
-				weightedStates.add(new ScoredState(calcWeightedScoreVert(i), Orientation.VERTICAL, i));
+				weightedStates.add(new ScoredState(calcWeightedScoreVert(i), Orientation.VERTICAL, i, 
+						game.pair.ball1.color, game.pair.ball2.color));
+				
+				ballSwap(game.pair);
+				
+				weightedStates.add(new ScoredState(calcWeightedScoreVert(i), Orientation.VERTICAL, i, 
+						game.pair.ball1.color, game.pair.ball2.color));
 			}
 			Collections.sort(weightedStates);
-			bestLocation = weightedStates.getLast().location;
-			bestOrient = weightedStates.getLast().orientation;
+			ScoredState bestMove2 = weightedStates.getLast();
+			
+			ball1Color = bestMove2.ball1Color;
+			ball2Color = bestMove2.ball2Color;
+			bestLocation = bestMove2.location;
+			bestOrient = bestMove2.orientation;
+			maxScore = bestMove2.score;
 		}
 		
-		
-		game.pair.location = bestLocation;
-		game.pair.orietation = bestOrient;
+		game.pair = new InputPair(ball1Color, ball2Color, bestLocation, bestOrient);
 	}
 	
 	private int calcWeightedScoreVert(int index)
@@ -109,7 +150,7 @@ public class NaiveAgent {
 			
 			if (twoTouchingVert(index))
 			{
-				score += 2;
+				score += 4;
 			}
 			return score;
 		} catch (Exception e) {
@@ -132,13 +173,21 @@ public class NaiveAgent {
 			
 			if (twoTouchingHoriz(index))
 			{
-				score += 2;
+				System.out.println("Found 2 touching horizontally");
+				score += 4;
 			}
 			return score;
 		} catch (Exception e) {
 			//e.printStackTrace();
 			return 0;
 		}
+	}
+	
+	public void ballSwap(InputPair pair)
+	{
+		Ball temp = pair.ball1;
+		pair.ball1 = pair.ball2;
+		pair.ball2 = temp;
 	}
 	
 	private boolean createsBlockerVert()
@@ -150,7 +199,7 @@ public class NaiveAgent {
 	}
 	
 	
-	private boolean twoTouchingVert(int index)
+	public boolean twoTouchingVert(int index)
 	{
 		Color c1 = game.pair.ball1.color;
 		Color c2 = game.pair.ball2.color;
@@ -190,14 +239,14 @@ public class NaiveAgent {
 
 			return false;
 		} catch (Exception e) {
-			// Thrown from findLowestFreeSpce when a drop at index will end the game
+			e.printStackTrace();
 			return false;
 		}
 		
 	}
 	
 	
-	private boolean twoTouchingHoriz(int index)
+	public boolean twoTouchingHoriz(int index)
 	{
 		Color c1 = game.pair.ball1.color;
 		Color c2 = game.pair.ball2.color;
@@ -205,41 +254,79 @@ public class NaiveAgent {
 		try {
 			int height1 = game.findLowestFreeSpace(index);
 			int height2 = game.findLowestFreeSpace(index + 1);
-			
-			if (game.withinWidth(index+2) && game.board[index+2][height2].color == c2)
+
+			if (touchingHorizRight(index, height2, c2))
 			{
 				return true;
 			}
 			
-			if (game.withinHeight(height2 - 1) && game.board[index+1][height2-1].color == c2)
+			if (touchingHorizRightBottom(index, height2, c2))
 			{
 				return true;
 			}
 			
-			if (game.withinWidth(index-1) && game.board[index-1][height1].color == c1)
+			if (touchingHorizLeft(index, height1, c1))
+			{
+				return true;
+			}
+
+			if (touchingHorizLeftBottom(index, height1, c1))
 			{
 				return true;
 			}
 			
-			if (game.withinHeight(height1 - 1) && game.board[index][height1-1].color == c1)
+			
+			if (height1 > height2 && game.board[index][height2].color == c2)
 			{
 				return true;
 			}
-			
-			
-			if (height1 != height2)
+			if (height1 < height2 && game.board[index+1][height1].color == c1)
 			{
-				if (game.board[index+1][height1].color == c1 || game.board[index][height2].color == c2)
-				{
-					return true;
-				}
+						return true;
 			}
 			
 			return false;
 		} catch (Exception e) {
-			// Thrown from findLowestFreeSpce when a drop at index will end the game
+			e.printStackTrace();
 			return false;
 		}	
+	}
+	
+	// Horizonal touching helpers
+	private boolean touchingHorizRight(int index, int height, Color c)
+	{
+		if(game.withinWidth(index+2) && game.board[index+2][height] != null && game.board[index+2][height].color == c)
+		{
+			return true;
+		}
+		return false;
+	}
+	
+	private boolean touchingHorizRightBottom(int index, int height, Color c)
+	{
+		if(game.withinHeight(height - 1) && game.board[index+1][height-1] != null && game.board[index+1][height-1].color == c)
+		{
+			return true;
+		}
+		return false;
+	}
+	
+	private boolean touchingHorizLeft(int index, int height, Color c)
+	{
+		if(game.withinWidth(index-1) && game.board[index-1][height] != null && game.board[index-1][height].color == c)
+		{
+			return true;
+		}
+		return false;
+	}
+	
+	private boolean touchingHorizLeftBottom(int index, int height, Color c)
+	{
+		if(game.withinHeight(height - 1) && game.board[index][height-1] != null && game.board[index][height-1].color == c)
+		{
+			return true;
+		}
+		return false;
 	}
 	
 	public class ScoredState implements Comparable<ScoredState>
@@ -247,12 +334,16 @@ public class NaiveAgent {
 		public int score;
 		public Orientation orientation;
 		public int location;
+		public Color ball1Color;
+		public Color ball2Color;
 		
-		public ScoredState(int sc, Orientation o, int loc)
+		public ScoredState(int sc, Orientation o, int loc, Color ball1, Color ball2)
 		{
 			score = sc;
 			orientation = o;
 			location = loc;
+			ball1Color = ball1;
+			ball2Color = ball2;
 		}
 
 		@Override

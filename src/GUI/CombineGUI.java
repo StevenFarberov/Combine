@@ -33,7 +33,7 @@ public class CombineGUI extends JFrame {
 	gameState.Board board;
 	Game game;
 	
-	public CombineGUI(gameState.Board board, Game game, boolean humanPlay) {
+	public CombineGUI(gameState.Board board, Game game) {
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 	    setBounds(0,0,screenSize.width, screenSize.height);
@@ -46,10 +46,6 @@ public class CombineGUI extends JFrame {
 		self = this;
 		this.board = board;	
 		this.game = game;
-		if (humanPlay)
-		{
-			GUIBoard.addKeyListener(new ArrowListener());
-		}
 		setContentPane(contentPane);
 	}
 	
@@ -103,10 +99,10 @@ public class CombineGUI extends JFrame {
 				try {
 					gameState.Board board = new gameState.Board();
 					final Game game = new Game(board);
-					final NaiveAgent agent = new NaiveAgent(game);
-					final CombineGUI frame = new CombineGUI(board, game, true);
+					final CombineGUI frame = new CombineGUI(board, game);
 					//frame.addKeyListener(frame.new ArrowListener());
 					frame.setVisible(true);
+					final NaiveAgent agent = new NaiveAgent(game);
 					ActionListener taskPerformer1 = new ActionListener() {
 						public void actionPerformed(ActionEvent evt) {
 							try {
@@ -141,8 +137,10 @@ public class CombineGUI extends JFrame {
 								game.combineAll();
 								frame.repaint();
 							} catch (Exception e) {
-								// TODO Auto-generated catch block
-								e.printStackTrace();
+								System.out.println(e.getMessage());
+								System.out.println("Score = " + game.score);
+								frame.setVisible(false);
+								frame.dispose();
 								return;
 							}
 
